@@ -1,0 +1,33 @@
+---
+driver:
+  name: vagrant
+  network:
+    - ["forwarded_port", {guest: 80, host: 8082}]
+    - ["private_network", {ip: "192.168.56.10"}]
+  synced_folders:
+    - ["../chef-pkgs", "/tmp/chef-pkgs"]
+
+provisioner:
+  name: chef_zero
+  require_chef_omnibus: 12.4.1
+  chef_omnibus_url: file:///tmp/chef-pkgs/install.sh
+
+  # You may wish to disable always updating cookbooks in CI or other testing environments.
+  # For example:
+  #   always_update_cookbooks: <%= !ENV['CI'] %>
+  always_update_cookbooks: true
+
+verifier:
+  name: inspec
+
+platforms:
+  - name: sbeliakou/centos-7.3-x86_64-minimal
+
+suites:
+  - name: default
+    run_list:
+      - recipe[task4_nginx::default]
+    verifier:
+      inspec_tests:
+        - test/smoke/default
+    attributes:
